@@ -75,7 +75,7 @@
 # with on the local project file.
 
 
-# NOTE: YOU NEED TO EDIT THE SETUP SECTION BELOW (LINE 155)
+# NOTE: YOU NEED TO EDIT THE SETUP SECTION BELOW (LINE 177)
 
 
 
@@ -104,6 +104,28 @@ sub __check_mount_point {
     my $s                       = shift;
     my $result                  = `mount | grep $s`;
     die("No mount point '$s'") if (!$result);
+}
+
+
+sub __ls {
+    my ($s, $dir)               = @_;
+    print("* LISTING PROJECT FILES IN ($s): $dir\n");
+    
+    opendir(my $dh, $dir) or die("Cannot open directory ($dir) for reading.");
+    
+    my @dirlist;
+    while (my $fn = readdir($dh)) {
+        push(@dirlist, $fn) if ($fn =~ /\.geany$/);
+    }
+    
+    closedir($dh);
+    
+    foreach my $fn (sort(@dirlist)) {
+        print("    $fn\n");
+    }
+    
+    print("\nDONE.\n\n");
+    exit(0);
 }
 
 
@@ -186,7 +208,7 @@ my $search_and_replace          = {
 # MAIN BEGIN
 eval {
     print("\n***IMPORT GEANY PROJECT***   by Evgueni.Antonov, 2020-03-17\n");
-    print("USAGE: import_geany_project.pl [REMOTEPATH]<PROJECTFILE>[.geany] nocopy\nThe 'nocopy' parameter is when you already copied the project file locally.\n\n");
+    print("USAGE: import_geany_project.pl [REMOTEPATH]<PROJECTFILE>[.geany] nocopy\nOR   : import_geany_project.pl <LSLOCAL|LSREMOTE>\nThe 'nocopy' parameter is when you already copied the project file locally.\nThe 'lsremote' or 'lslocal' parameters just do ls on the local or remote path. For convenience.\n\n");
     
     my $filename                = $ARGV[0];
     die("No project file to import.") if (!$filename);
@@ -210,9 +232,12 @@ eval {
     }
     my $local_file              = "$local_path/$filename";
     
-    print("* Importing: $remote_file --> $local_file\n\n");
-    
     __check_mount_point($remote_mountpoint) if (!$nocopy);
+    
+    __ls('remote path', $remote_path) if ($filename =~ /^lsrem/i);
+    __ls('local path', $local_path) if ($filename =~ /^lsloc/i);
+    
+    print("* Importing: $remote_file --> $local_file\n\n");
     die("File not found.") if (!-e $remote_file);
     
     print("\n*** NOTE: We will not copy anything, as the nocopy parameter is passed.\n\n") if ($nocopy);
