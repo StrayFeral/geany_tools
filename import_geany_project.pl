@@ -250,6 +250,7 @@ eval {
     
     my $filename                = $ARGV[0];
     die("No project file to import.") if (!$filename);
+    exit(0) if ($filename =~ /^[-]*help$/i);
     
     # We really don't care the value here
     my $nocopy                  = $ARGV[1];
