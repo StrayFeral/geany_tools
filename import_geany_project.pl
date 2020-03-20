@@ -75,7 +75,7 @@
 # with on the local project file.
 
 
-# NOTE: YOU NEED TO EDIT THE SETUP SECTION BELOW (LINE 177)
+# NOTE: YOU NEED TO EDIT THE SETUP SECTION BELOW (LINE 214)
 
 
 
@@ -115,13 +115,50 @@ sub __ls {
     
     my @dirlist;
     while (my $fn = readdir($dh)) {
-        push(@dirlist, $fn) if ($fn =~ /\.geany$/);
+        push(@dirlist, $fn) if ($fn =~ /\.geany$/ and (-f $fn));
     }
     
     closedir($dh);
     
+    my $total                   = scalar(@dirlist);
+    
+    my $i                       = 0;
     foreach my $fn (sort(@dirlist)) {
-        print("    $fn\n");
+        $i++;
+        print(sprintf("    [%03i/%03i] $fn\n", $i, $total));
+    }
+    
+    print("\nDONE.\n\n");
+    exit(0);
+}
+
+
+sub __create_backup {
+    my ($dir, $backup_dir_name) = @_;
+    print("* CREATING BACKUP COPIES OF THE PROJECT FILES IN: $backup_dir_name\n");
+    
+    opendir(my $dh, $dir) or die("Cannot open directory ($dir) for reading.");
+    
+    my @dirlist;
+    while (my $fn = readdir($dh)) {
+        push(@dirlist, $fn) if ($fn =~ /\.geany$/ and (-f $fn));
+    }
+    
+    closedir($dh);
+    
+    my $total                   = scalar(@dirlist);
+    
+    if (!-d $backup_dir_name) {
+        print("* Creating backup directory: $backup_dir_name ... ");
+        mkdir($backup_dir_name) or die ("Cannot create backup directory ($backup_dir_name).");
+        print("Done.\n");
+    }
+    
+    my $i                       = 0;
+    foreach my $fn (sort(@dirlist)) {
+        $i++;
+        print(sprintf("    [%03i/%03i] $fn\n", $i, $total));
+        copy("$dir/$fn", "$backup_dir_name/$fn") or die("Cannot make backup file: $!")
     }
     
     print("\nDONE.\n\n");
@@ -177,6 +214,7 @@ sub __get_eol {
 my $remote_mountpoint           = '/mnt/YOUROFFICECOMPUTER'; # Which machine we will export from
 my $local_path                  = '/home/YOURUSERNAME/projects'; # Where to import to
 my $remote_path                 = $remote_mountpoint.'/home/YOURUSERNAME/projects'; # Where to export from
+my $backup_path                 = "$local_path/backup"; # Local backup path
 my $last_dir                    = undef; # KEEP UNDEF IF YOU DON'T WANT TO CHANGE THIS IN THE PROJECT FILE
 
 # If you don't have anything like my notes file, just leave these empty.
@@ -208,7 +246,7 @@ my $search_and_replace          = {
 # MAIN BEGIN
 eval {
     print("\n***IMPORT GEANY PROJECT***   by Evgueni.Antonov, 2020-03-17\n");
-    print("USAGE: import_geany_project.pl [REMOTEPATH]<PROJECTFILE>[.geany] nocopy\nOR   : import_geany_project.pl <LSLOCAL|LSREMOTE>\nThe 'nocopy' parameter is when you already copied the project file locally.\nThe 'lsremote' or 'lslocal' parameters just do ls on the local or remote path. For convenience.\n\n");
+    print("USAGE: import_geany_project.pl [REMOTEPATH]<PROJECTFILE>[.geany] nocopy\nOR   : import_geany_project.pl <LSLOCAL|LSREMOTE>\nOR   : import_geany_project.pl <DOBACKUP>\nThe 'nocopy' parameter is when you already copied the project file locally.\nThe 'lsremote' or 'lslocal' parameters just do ls on the local or remote path. For convenience.\n\n");
     
     my $filename                = $ARGV[0];
     die("No project file to import.") if (!$filename);
@@ -232,13 +270,15 @@ eval {
     }
     my $local_file              = "$local_path/$filename";
     
-    __check_mount_point($remote_mountpoint) if (!$nocopy);
+    __check_mount_point($remote_mountpoint) if (!$nocopy and $filename !~ /^dobackup/i);
     
     __ls('remote path', $remote_path) if ($filename =~ /^lsrem/i);
     __ls('local path', $local_path) if ($filename =~ /^lsloc/i);
+    __create_backup($local_path, $backup_path) if  ($filename =~ /^dobackup/i);
     
     print("* Importing: $remote_file --> $local_file\n\n");
     die("File not found.") if (!-e $remote_file);
+    die("File not a plain file.") if (!-f $remote_file);
     
     print("\n*** NOTE: We will not copy anything, as the nocopy parameter is passed.\n\n") if ($nocopy);
     
