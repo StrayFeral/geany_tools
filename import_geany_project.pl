@@ -271,11 +271,10 @@ eval {
     }
     my $local_file              = "$local_path/$filename";
     
-    __check_mount_point($remote_mountpoint) if (!$nocopy and $filename !~ /^dobackup/i);
-    
-    __ls('remote path', $remote_path) if ($filename =~ /^lsrem/i);
     __ls('local path', $local_path) if ($filename =~ /^lsloc/i);
     __create_backup($local_path, $backup_path) if  ($filename =~ /^dobackup/i);
+    __check_mount_point($remote_mountpoint) if (!$nocopy and $filename !~ /^dobackup/i);
+    __ls('remote path', $remote_path) if ($filename =~ /^lsrem/i);
     
     print("* Importing: $remote_file --> $local_file\n\n");
     die("File not found.") if (!-e $remote_file);
