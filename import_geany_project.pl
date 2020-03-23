@@ -115,7 +115,7 @@ sub __ls {
     
     my @dirlist;
     while (my $fn = readdir($dh)) {
-        push(@dirlist, $fn) if ($fn =~ /\.geany$/ and (-f $fn));
+        push(@dirlist, $fn) if ($fn =~ /\.geany$/ and (!-d $fn) and (!-l $fn));
     }
     
     closedir($dh);
@@ -141,7 +141,7 @@ sub __create_backup {
     
     my @dirlist;
     while (my $fn = readdir($dh)) {
-        push(@dirlist, $fn) if ($fn =~ /\.geany$/ and (-f $fn));
+        push(@dirlist, $fn) if ($fn =~ /\.geany$/ and (!-d $fn) and (!-l $fn));
     }
     
     closedir($dh);
@@ -213,7 +213,7 @@ sub __get_eol {
 # Geany project paths
 my $remote_mountpoint           = '/mnt/YOUROFFICECOMPUTER'; # Which machine we will export from
 my $local_path                  = '/home/YOURUSERNAME/projects'; # Where to import to
-my $remote_path                 = $remote_mountpoint.'/home/YOURUSERNAME/projects'; # Where to export from
+my $remote_path                 = "$remote_mountpoint/home/YOURUSERNAME/projects"; # Where to export from
 my $backup_path                 = "$local_path/backup"; # Local backup path
 my $last_dir                    = undef; # KEEP UNDEF IF YOU DON'T WANT TO CHANGE THIS IN THE PROJECT FILE
 
@@ -278,7 +278,8 @@ eval {
     
     print("* Importing: $remote_file --> $local_file\n\n");
     die("File not found.") if (!-e $remote_file);
-    die("File not a plain file.") if (!-f $remote_file);
+    die("Given file is a directory.") if (-d $remote_file);
+    die("Given file is a symlink.") if (-l $remote_file);
     
     print("\n*** NOTE: We will not copy anything, as the nocopy parameter is passed.\n\n") if ($nocopy);
     
