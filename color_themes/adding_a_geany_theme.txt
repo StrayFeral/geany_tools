@@ -1,0 +1,43 @@
+2023-05-13 NOTE
+-----------------------------------------------------------------------
+The original python code to add Geany themes is written in Python 2.
+As of today the code was not fully ported. So in case of problems,
+this is what I did, to regenerate the json index files:
+
+sudo docker image pull python:2
+sudo docker run -it python:2 bash
+
+# From now on, the rest is executed on the container shell.
+# By the way the container is a Debian 10 image with Python 2.7.18
+
+apt update
+apt upgrade
+apt install wget
+
+# This however does not seem to work, maybe it is only the Python 3 version
+apt install python-pil
+
+python -m pip install --upgrade pip
+
+# Pillow is a fork of PIL. In my case PIL did not worked
+pip install pillow
+
+cd /tmp
+wget https://github.com/geany/geany-themes/archive/refs/heads/master.zip
+unzip master.zip
+cd geany-themes-master/
+
+# Now copy-paste your new theme_name.conf in colorschemes/
+# and then your screenshot_name.png in screenshots/
+
+make clean
+make index
+
+# In 2023 the folowing is a bit barbarian, I know. But it works.
+# You can go in a better way if you mount your native filesystem to
+# the container, but I was in a hurry and as I said - it works.
+
+# So now we simply cat the files we need and we copy-paste them
+# in our native filesystem:
+cat index.json.md5
+cat index.json # This one is large !
