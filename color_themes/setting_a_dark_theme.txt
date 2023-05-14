@@ -1,0 +1,24 @@
+Here is how to set a dark theme on Geany on LXQT.
+
+Geany is a GTK application, so you need to set the
+GTK theme as dark.
+
+On LUbuntu 22.04 LTS (jammy) this is done like this:
+
+
+1) HOME BUTTON > Preferences > LXQt Settings > Appearance
+
+Here on the Widget Style tab by default the GTK2 and GTK3
+themes are set to "Arc-Darker". Set them both to "Ark-Dark".
+
+2) If you have Geany open - close it and open it again
+
+This changes the application colors, but NOT the editor colors.
+To change the editor colors you do this separately, by
+choosing a theme from:
+
+https://www.geany.org/download/themes/
+
+Where you can download and install any dark theme you want,
+including my dark theme "evg-ega-dark".
+
